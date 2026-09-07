@@ -912,11 +912,6 @@ class BoardManagerTest extends MediaWikiIntegrationTestCase {
 	}
 
 
-	/**
-	 * $wgNoFollowDomainExceptions and $wgNoFollowNsExceptions exist for wiki
-	 * content an editor vouched for. A board message is submitted by anyone who
-	 * can post, so no exemption should reach it.
-	 */
 	public function testEveryExternalLinkInAMessageIsNoFollow(): void {
 		$this->overrideConfigValues( [
 			MainConfigNames::NoFollowLinks => false,
@@ -967,7 +962,6 @@ class BoardManagerTest extends MediaWikiIntegrationTestCase {
 		}
 	}
 
-	/** Render Special:NexaBoard for a user and return the HTML. */
 	private function renderBoardFor( User $viewer ): string {
 		$context = new DerivativeContext( RequestContext::getMain() );
 		$context->setUser( $viewer );

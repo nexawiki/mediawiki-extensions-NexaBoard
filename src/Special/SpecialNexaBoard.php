@@ -1094,19 +1094,6 @@ class SpecialNexaBoard extends SpecialPage {
 		return self::forceNoFollow( $html );
 	}
 
-	/**
-	 * Put rel="nofollow" on every external link in a message.
-	 *
-	 * The parser already adds it, but $wgNoFollowDomainExceptions exempts whole
-	 * domains and $wgNoFollowNsExceptions whole namespaces. Those allowances are
-	 * meant for wiki content that an editor with edit rights vouched for. A board
-	 * message is submitted by anyone who can post, on a page belonging to someone
-	 * else, so no exemption should reach it — otherwise an exempted domain is a
-	 * standing invitation to spam every board on the wiki.
-	 *
-	 * Only parser-generated external links are touched; internal links do not
-	 * need it, and the sanitiser means no other anchors reach this output.
-	 */
 	private static function forceNoFollow( string $html ): string {
 		$out = preg_replace_callback(
 			'#<a\b([^>]*)>#i',
@@ -1129,7 +1116,6 @@ class SpecialNexaBoard extends SpecialPage {
 			$html
 		);
 
-		// A regex failure must not blank a message.
 		return $out ?? $html;
 	}
 
