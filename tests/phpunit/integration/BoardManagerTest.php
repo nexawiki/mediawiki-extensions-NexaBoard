@@ -8,6 +8,12 @@ use MediaWiki\Extension\NexaBoard\Store\MessageStore;
 use MediaWiki\Extension\NexaBoard\Store\ThreadStore;
 use MediaWiki\Extension\NexaBoard\BoardBlock;
 use MediaWiki\Extension\NexaBoard\BoardManager;
+use MediaWiki\Context\DerivativeContext;
+use MediaWiki\Context\RequestContext;
+use MediaWiki\MainConfigNames;
+use MediaWiki\Output\OutputPage;
+use MediaWiki\Request\FauxRequest;
+use MediaWiki\SpecialPage\SpecialPage;
 use MediaWiki\User\User;
 use MediaWikiIntegrationTestCase;
 use RuntimeException;
@@ -903,6 +909,79 @@ class BoardManagerTest extends MediaWikiIntegrationTestCase {
 			BoardBlock::affecting( $blocked, $owner->getId() ),
 			'blocking the User talk namespace blocks the boards that replace it'
 		);
+	}
+
+
+	/**
+	 * $wgNoFollowDomainExceptions and $wgNoFollowNsExceptions exist for wiki
+	 * content an editor vouched for. A board message is submitted by anyone who
+	 * can post, so no exemption should reach it.
+	 */
+	public function testEveryExternalLinkInAMessageIsNoFollow(): void {
+		$this->overrideConfigValues( [
+			MainConfigNames::NoFollowLinks => false,
+			MainConfigNames::NoFollowDomainExceptions => [ 'exempt.example' ],
+		] );
+
+		$actor  = $this->actor();
+		$thread = $this->manager()->createThread(
+			$actor->getId(),
+			$actor,
+			'Links',
+			"Plain: https://spam.example/one\n\n"
+			. "Labelled: [https://exempt.example/two two]",
+			NotificationMode::Suppress
+		);
+
+		$html = $this->renderBoardFor( $actor );
+
+		preg_match_all( '/<a\s[^>]*class="[^"]*external[^"]*"[^>]*>/', $html, $anchors );
+		$this->assertNotEmpty( $anchors[0], 'the message rendered some external links' );
+
+		foreach ( $anchors[0] as $tag ) {
+			$this->assertStringContainsString(
+				'nofollow', $tag,
+				'every external link carries nofollow, exempt domains included'
+			);
+		}
+
+		$this->assertDoesNotMatchRegularExpression(
+			'/nofollow[^"]*nofollow/', $html, 'nofollow is not doubled up'
+		);
+	}
+
+	public function testInternalLinksAreLeftAlone(): void {
+		$actor  = $this->actor();
+		$this->manager()->createThread(
+			$actor->getId(), $actor, 'Internal', 'See [[Main Page]].', NotificationMode::Suppress
+		);
+
+		$html = $this->renderBoardFor( $actor );
+
+		if ( preg_match( '/<a\s[^>]*href="[^"]*Main_Page[^"]*"[^>]*>/', $html, $m ) ) {
+			$this->assertStringNotContainsString(
+				'nofollow', $m[0], 'internal wiki links do not need nofollow'
+			);
+		} else {
+			$this->addToAssertionCount( 1 );
+		}
+	}
+
+	/** Render Special:NexaBoard for a user and return the HTML. */
+	private function renderBoardFor( User $viewer ): string {
+		$context = new DerivativeContext( RequestContext::getMain() );
+		$context->setUser( $viewer );
+		$context->setRequest( new FauxRequest( [] ) );
+		$context->setTitle( SpecialPage::getTitleFor( 'NexaBoard', $viewer->getName() ) );
+
+		$output = new OutputPage( $context );
+		$context->setOutput( $output );
+
+		$page = $this->getServiceContainer()->getSpecialPageFactory()->getPage( 'NexaBoard' );
+		$page->setContext( $context );
+		$page->execute( $viewer->getName() );
+
+		return $output->getHTML();
 	}
 
 }

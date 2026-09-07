@@ -1084,12 +1084,53 @@ class SpecialNexaBoard extends SpecialPage {
 		$options  = ParserOptions::newFromContext( $this->getContext() );
 
 		$parserOutput = $parser->parse( $wikitext, $title, $options );
-		return $parserOutput->runOutputPipeline( $options, [
+		$html = $parserOutput->runOutputPipeline( $options, [
 			'unwrap'                 => true,
 			'allowTOC'               => false,
 			'enableSectionEditLinks' => false,
 			'deduplicateStyles'      => false,
 		] )->getContentHolderText();
+
+		return self::forceNoFollow( $html );
+	}
+
+	/**
+	 * Put rel="nofollow" on every external link in a message.
+	 *
+	 * The parser already adds it, but $wgNoFollowDomainExceptions exempts whole
+	 * domains and $wgNoFollowNsExceptions whole namespaces. Those allowances are
+	 * meant for wiki content that an editor with edit rights vouched for. A board
+	 * message is submitted by anyone who can post, on a page belonging to someone
+	 * else, so no exemption should reach it — otherwise an exempted domain is a
+	 * standing invitation to spam every board on the wiki.
+	 *
+	 * Only parser-generated external links are touched; internal links do not
+	 * need it, and the sanitiser means no other anchors reach this output.
+	 */
+	private static function forceNoFollow( string $html ): string {
+		$out = preg_replace_callback(
+			'#<a\b([^>]*)>#i',
+			static function ( array $m ): string {
+				$attrs = $m[1];
+
+				if ( !preg_match( '/\bclass="[^"]*\bexternal\b/i', $attrs ) ) {
+					return $m[0];
+				}
+
+				if ( preg_match( '/\brel="([^"]*)"/i', $attrs, $rel ) ) {
+					if ( preg_match( '/\bnofollow\b/i', $rel[1] ) ) {
+						return $m[0];
+					}
+					return str_replace( $rel[0], 'rel="' . $rel[1] . ' nofollow"', $m[0] );
+				}
+
+				return '<a rel="nofollow"' . $attrs . '>';
+			},
+			$html
+		);
+
+		// A regex failure must not blank a message.
+		return $out ?? $html;
 	}
 
 	private function formatTimestamp( string $ts ): string {

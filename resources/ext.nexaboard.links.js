@@ -15,9 +15,6 @@
 
 	var reQuery = /[?&]title=User[_ ]talk:([^#?&/]+)/i;
 
-	// Links that address a revision, a diff, or any non-view action point at the
-	// talk page's history rather than at the conversation, so they must survive
-	// untouched — rewriting them is what made talk archives unreachable.
 	var reKeepAsIs = /[?&](?:action=(?!view(?:&|$))|oldid=|diff=|direction=|curid=|redirect=no)/i;
 
 	function extractUsername( href ) {
