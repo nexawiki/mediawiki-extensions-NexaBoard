@@ -28,6 +28,7 @@ A threaded discussion board for MediaWiki 1.45+.
    ```bash
    php maintenance/update.php
    ```
+   https://www.mediawiki.org/wiki/Extension:NexaBoard
 
 ## Permissions
 
