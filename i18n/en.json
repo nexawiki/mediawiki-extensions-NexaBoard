@@ -148,5 +148,7 @@
 	"nexaboard-error-merge-target-state": "Threads can only be merged into an open or closed thread.",
 	"nexaboard-error-merge-source-state": "A deleted or already-merged thread cannot be merged.",
 	"nexaboard-error-too-deep": "This reply chain is too deep. Reply higher up the thread instead.",
-	"nexaboard-blocked": "You are blocked from posting on boards."
+	"nexaboard-blocked": "You are blocked from posting on boards.",
+	"nexaboard-tab-about": "About",
+	"nexaboard-tab-contributions": "Contributions"
 }

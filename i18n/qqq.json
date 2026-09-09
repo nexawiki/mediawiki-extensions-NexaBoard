@@ -148,5 +148,7 @@
 	"nexaboard-error-merge-target-state": "Error shown when the merge destination is a deleted or already-merged thread. Merging into a deleted thread would hide live messages with no deletion recorded.",
 	"nexaboard-error-merge-source-state": "Error shown when a merge source is deleted or already merged. Merging a deleted thread would move its still-live messages into a readable thread and undo the deletion.",
 	"nexaboard-error-too-deep": "Error shown when a reply would nest deeper than BoardManager::MAX_REPLY_DEPTH allows.",
-	"nexaboard-blocked": "Notice shown in place of the posting form when the viewer is blocked from acting on this board. Covers sitewide blocks and partial blocks that cover the board owner's User talk: page."
+	"nexaboard-blocked": "Notice shown in place of the posting form when the viewer is blocked from acting on this board. Covers sitewide blocks and partial blocks that cover the board owner's User talk: page.",
+	"nexaboard-tab-about": "{{Identical|About}}\\nLabel of the first tab in the user tab bar, linking to the user page.",
+	"nexaboard-tab-contributions": "{{Identical|Contributions}}\\nLabel of the third tab in the user tab bar, linking to [[Special:Contributions]] for that user."
 }

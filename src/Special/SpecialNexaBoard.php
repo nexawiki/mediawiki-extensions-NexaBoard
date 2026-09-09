@@ -9,6 +9,7 @@ use MediaWiki\Extension\NexaBoard\BoardManager;
 use MediaWiki\Extension\NexaBoard\Store\FollowStore;
 use MediaWiki\Extension\NexaBoard\Store\MessageStore;
 use MediaWiki\Extension\NexaBoard\Store\ThreadStore;
+use MediaWiki\Extension\NexaBoard\UserTabBar;
 use MediaWiki\Html\Html;
 use MediaWiki\MediaWikiServices;
 use MediaWiki\Parser\ParserOptions;
@@ -85,6 +86,10 @@ class SpecialNexaBoard extends SpecialPage {
 		$nextCursor = $hasMore && $last
 			? self::makeCursor( $last->nbt_updated, (int)$last->nbt_id )
 			: null;
+
+		$out->addHTML( UserTabBar::render(
+			$boardUser->getName(), UserTabBar::TAB_BOARD, $this->getContext()
+		) );
 
 		$out->addHTML( $this->renderBoard(
 			$boardUser, $viewer, $rows, $nextCursor,

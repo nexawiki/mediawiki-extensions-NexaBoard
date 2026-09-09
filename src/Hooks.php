@@ -87,6 +87,44 @@ class Hooks {
 	public static function onBeforePageDisplay( OutputPage $out, Skin $skin ): void {
 
 		$out->addModules( 'ext.nexaboard.links' );
+
+		$title = $out->getTitle();
+		if ( !$title ) {
+			return;
+		}
+
+		$username  = null;
+		$activeTab = UserTabBar::TAB_ABOUT;
+
+		if ( $title->getNamespace() === NS_USER ) {
+			$parts     = explode( '/', $title->getText(), 2 );
+			$username  = $parts[0];
+			$activeTab = UserTabBar::TAB_ABOUT;
+		}
+
+		if ( $title->isSpecialPage() && $username === null ) {
+			$spFactory      = MediaWikiServices::getInstance()->getSpecialPageFactory();
+			[ $name, $sub ] = $spFactory->resolveAlias( $title->getDBkey() );
+
+			if ( $name === 'Contributions' && $sub !== null && $sub !== '' ) {
+				$username  = str_replace( '_', ' ', $sub );
+				$activeTab = UserTabBar::TAB_CONTRIBUTIONS;
+			}
+		}
+
+		if ( $username === null ) {
+			return;
+		}
+
+		$user = MediaWikiServices::getInstance()->getUserFactory()->newFromName( $username );
+		if ( !$user || $user->getId() === 0 ) {
+			return;
+		}
+
+		$out->addModuleStyles( 'ext.nexaboard.styles' );
+		$out->prependHTML(
+			UserTabBar::render( $user->getName(), $activeTab, $out->getContext() )
+		);
 	}
 
 	public static function onBeforeInitialize(
